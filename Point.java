@@ -27,4 +27,9 @@ public class Point {
     public int hashCode() {
         return (int) Math.pow(this.x, 31) * this.y;
     }
+
+    @Override
+    public String toString() {
+        return "(" + x + ", " + y + ")";
+    }
 }

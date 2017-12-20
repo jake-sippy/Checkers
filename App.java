@@ -1,6 +1,7 @@
 import java.util.*;
 
 public class App {
+    // static ANSI codes for colorizing output
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_BLACK = "\u001B[30m";
     public static final String ANSI_RED = "\u001B[31m";
@@ -16,89 +17,72 @@ public class App {
         Scanner input = new Scanner(System.in);
         while (true) {
             printBoard(b);
-            int startX = promptX(input);
-            int startY = promptY(input);
-        
-            printMoves(b, startX, startY);
 
-            int endX = promptX(input);
-            int endY = promptY(input);
-            if (b.isLegalMove(startX, startY, endX, endY))
-                b.move(startX, startY, endX, endY);
+            Point start = promptStart(input);
+            if (b.hasPiece(start)) {
+                printMoves(b, start);
+                Point end = promptEnd(input);
+            } else {
+                System.out.println(start + " is does not correspond to a piece")
+            }
         }
     }
 
     public static void printBoard(Board b) {
-        for (int y = Board.BOARD_SIZE - 1; y >= 0; y--) {
+        printMoves(b, null);
+    }
+
+    public static void printMoves(Board b, Point p) {
+        Set<Move> moves;
+        moves = b.getLegalMoves();
+
+        System.out.println();
+        for (int y = Board.WIDTH - 1; y >= 0; y--) {
             System.out.print(y + "    ");
-            for (int x = 0; x < Board.BOARD_SIZE; x++) {
-                if (b.hasPiece(x, y)) {
-                    System.out.print("[");
-                    if (b.getColor(x, y) == Color.BLACK) {
-                        System.out.print(ANSI_WHITE + "BB");
-                    } else {
-                        System.out.print(ANSI_RED + "RR");
-                    }
-                    System.out.print(ANSI_RESET);
-                    System.out.print("] ");
-                } else {
-                    System.out.print("[  ] ");
-                }
+            for (int x = 0; x < Board.WIDTH; x++) {
+                Point curr = new Point(x, y);
+                if (b.hasPiece(curr))
+                    drawPiece(b.getColor(curr));
+                else
+                    drawMove(moves, p);
+                System.out.print(' ');
             }
             System.out.println();
             System.out.println();
         }
 
-        System.out.print("      ");
-        for (int i = 0; i < Board.BOARD_SIZE; i++) {
+        System.out.print("       ");
+        for (int i = 0; i < Board.WIDTH; i++) {
             System.out.print(i + "    ");
         }
+        System.out.println();
         System.out.println();
     }
 
-    public static void printMoves(Board b, int startX, int startY) {
-        if (!b.hasPiece(startX, startY)) {
-            System.out.println("There is no piece at (" +
-                    startX + ", " + startY + ").");
-            return;
+    private static void drawPiece(Color c) {
+        if (c == Color.RED) {
+            System.out.print(ANSI_RED + "[RR]" + ANSI_RESET);
+        } else {
+            System.out.print(ANSI_WHITE + "[BB]" + ANSI_RESET);
         }
-        
-        System.out.println();
-        for (int y = Board.BOARD_SIZE - 1; y >= 0; y--) {
-            System.out.print(y + "    ");
-            for (int x = 0; x < Board.BOARD_SIZE; x++) {
+    }
 
-                if (b.hasPiece(x, y)) {
-                    System.out.print("[");
-                    if (b.getColor(x, y) == Color.BLACK) {
-                        System.out.print(ANSI_WHITE + "BB");
-                    } else {
-                        System.out.print(ANSI_RED + "RR");
-                    }
-                    System.out.print(ANSI_RESET);
-                    System.out.print("] ");
-                } else if (b.isLegalMove(startX, startY, x, y))
-                    System.out.print("[" + ANSI_CYAN + "&&" +
-                            ANSI_RESET + "] ");
-                else
-                    System.out.print("[  ] ");
+    private static void drawMove(Set<Move> moves, Point p) {
+        if (p != null) {
+            for (Move move : moves) {
+                if (move.getStart().equals(p)) {
+                    System.out.print(ANSI_GREEN + "[:)]" + ANSI_RESET);
+                    return;
+                }
             }
-            System.out.println();
-            System.out.println();
         }
-
-        System.out.print("      ");
-        for (int i = 0; i < Board.BOARD_SIZE; i++) {
-            System.out.print(i + "    ");
-        }
-        System.out.println();
-
+        System.out.print("[  ]");
     }
 
     public static int promptX(Scanner input) {
-        System.out.print("Enter x-coordinate (0 - " + (Board.BOARD_SIZE - 1) + "): ");
+        System.out.print("Enter x-coordinate (0 - " + (Board.WIDTH - 1) + "): ");
         int result = input.nextInt();
-        if (result >= 0 && result <= Board.BOARD_SIZE)
+        if (result >= 0 && result <= Board.WIDTH)
             return result;
         else
             return promptX(input);
@@ -106,11 +90,31 @@ public class App {
 
 
     public static int promptY(Scanner input) {
-        System.out.print("Enter y-coordinate (0 - " + (Board.BOARD_SIZE - 1) + "): ");
+        System.out.print("Enter y-coordinate (0 - " + (Board.WIDTH - 1) + "): ");
         int result = input.nextInt();
-        if (result >= 0 && result < Board.BOARD_SIZE)
+        if (result >= 0 && result < Board.WIDTH)
             return result;
         else
             return promptY(input);
+    }
+
+    public static Point promptStart(Scanner input) {
+        System.out.println("Choose a piece");
+        return promptPoint(input);
+    }
+
+    public static Point promptEnd(Scanner input) {
+        System.out.println("Choose a move");
+        return promptPoint(input);
+    }
+
+    private static Point promptPoint(Scanner input) {
+        System.out.print("\tEnter a point: ");
+
+        int x = input.nextInt();
+        int y = input.nextInt();
+        Point result = new Point(x, y);
+        System.out.print(result);
+        return result;
     }
 }
