@@ -17,104 +17,152 @@ public class App {
         Scanner input = new Scanner(System.in);
         while (true) {
             printBoard(b);
+            int start = promptStart(input);
+            printMoves(b, start);
+            int end = promptEnd(input);
 
-            Point start = promptStart(input);
-            if (b.hasPiece(start)) {
-                printMoves(b, start);
-                Point end = promptEnd(input);
-            } else {
-                System.out.println(start + " is does not correspond to a piece")
-            }
+            Move userMove = new Move(start, end);
+            if (b.getLegalMoves().contains(userMove))
+                b.move(userMove);
+        }
+    }
+
+    private static void printTurn(Board b) {
+        System.out.println();
+        System.out.print("Turn : ");
+        if (b.getTurn() == Color.RED) {
+            System.out.println(ANSI_RED + "RED" + ANSI_RESET);
+        } else {
+            System.out.println(ANSI_WHITE + "BLACK" + ANSI_RESET);
         }
     }
 
     public static void printBoard(Board b) {
-        printMoves(b, null);
-    }
-
-    public static void printMoves(Board b, Point p) {
-        Set<Move> moves;
-        moves = b.getLegalMoves();
-
+        printTurn(b);
+        // space before board
         System.out.println();
-        for (int y = Board.WIDTH - 1; y >= 0; y--) {
-            System.out.print(y + "    ");
-            for (int x = 0; x < Board.WIDTH; x++) {
-                Point curr = new Point(x, y);
-                if (b.hasPiece(curr))
-                    drawPiece(b.getColor(curr));
-                else
-                    drawMove(moves, p);
-                System.out.print(' ');
+        for (int i = 0; i < b.getNumOfPlaces(); i++) {
+            int rowType = i % 8;
+
+            // indent the board
+            if (rowType == 0 || rowType == 4)
+                System.out.print(i + "\t");
+
+            if (rowType < 4)
+                System.out.print(ANSI_BLUE + "[[]] " + ANSI_RESET);
+
+            drawPiece(b, i + 1);
+
+            if (rowType >= 4)
+                System.out.print(ANSI_BLUE + "[[]] " + ANSI_RESET);
+
+            if (rowType == 3 || rowType == 7) {
+                System.out.println();
+                System.out.println();
             }
-            System.out.println();
-            System.out.println();
         }
 
-        System.out.print("       ");
-        for (int i = 0; i < Board.WIDTH; i++) {
-            System.out.print(i + "    ");
+        System.out.print(" \t    ");
+        for (int i = 1; i <= Board.WIDTH / 2; i++) {
+            System.out.print("+" + i + "        ");
         }
         System.out.println();
         System.out.println();
     }
 
-    private static void drawPiece(Color c) {
-        if (c == Color.RED) {
-            System.out.print(ANSI_RED + "[RR]" + ANSI_RESET);
+    private static void printMoves(Board b, int place) {
+        printTurn(b);
+        Set<Move> moves = b.getLegalMoves();
+
+        // space before board
+        System.out.println();
+        for (int i = 0; i < b.getNumOfPlaces(); i++) {
+            int rowType = i % 8;
+
+            // indent the board
+            if (rowType == 0 || rowType == 4)
+                System.out.print(i + "\t");
+
+            if (rowType < 4)
+                System.out.print(ANSI_BLUE + "[[]] " + ANSI_RESET);
+
+            if (isMove(moves, place, i + 1)) {
+                System.out.print("[" + ANSI_GREEN + ":)" +
+                        ANSI_RESET + "] ");
+            } else {
+                drawPiece(b, i + 1);
+            }
+
+            if (rowType >= 4)
+                System.out.print(ANSI_BLUE + "[[]] " + ANSI_RESET);
+
+            if (rowType == 3 || rowType == 7) {
+                System.out.println();
+                System.out.println();
+            }
+        }
+
+        System.out.print(" \t    ");
+        for (int i = 1; i <= Board.WIDTH / 2; i++) {
+            System.out.print("+" + i + "        ");
+        }
+        System.out.println();
+        System.out.println();
+
+        // System.out.println("Moves: " + moves);
+    }
+
+    private static boolean isMove(Set<Move> moves, int start, int end) {
+        for (Move move : moves) {
+            if (move.getStart() == start && move.getEnd() == end) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static void drawPiece(Board b, int place) {
+        if (b.hasPieceAt(place)) {
+            if (b.getColor(place) == Color.RED) {
+                System.out.print("[" + ANSI_RED + "RR" +
+                        ANSI_RESET + "] ");
+            } else {
+                System.out.print("[" + ANSI_WHITE + "BB" +
+                        ANSI_RESET + "] ");
+            }
         } else {
-            System.out.print(ANSI_WHITE + "[BB]" + ANSI_RESET);
+            System.out.print("[  ] ");
         }
     }
 
-    private static void drawMove(Set<Move> moves, Point p) {
-        if (p != null) {
-            for (Move move : moves) {
-                if (move.getStart().equals(p)) {
-                    System.out.print(ANSI_GREEN + "[:)]" + ANSI_RESET);
-                    return;
+    private static int promptStart(Scanner input) {
+        int place = -1;
+        while (place < 1 || place > 32) {
+            System.out.print("Enter start (1 - 32): ");
+            while (!input.hasNextInt()) {
+                if (input.hasNext()) {
+                    input.next();
+                    System.out.print("Enter start (1 - 32): ");
                 }
             }
+            place = input.nextInt();
         }
-        System.out.print("[  ]");
+        return place;
     }
 
-    public static int promptX(Scanner input) {
-        System.out.print("Enter x-coordinate (0 - " + (Board.WIDTH - 1) + "): ");
-        int result = input.nextInt();
-        if (result >= 0 && result <= Board.WIDTH)
-            return result;
-        else
-            return promptX(input);
-    }
-
-
-    public static int promptY(Scanner input) {
-        System.out.print("Enter y-coordinate (0 - " + (Board.WIDTH - 1) + "): ");
-        int result = input.nextInt();
-        if (result >= 0 && result < Board.WIDTH)
-            return result;
-        else
-            return promptY(input);
-    }
-
-    public static Point promptStart(Scanner input) {
-        System.out.println("Choose a piece");
-        return promptPoint(input);
-    }
-
-    public static Point promptEnd(Scanner input) {
-        System.out.println("Choose a move");
-        return promptPoint(input);
-    }
-
-    private static Point promptPoint(Scanner input) {
-        System.out.print("\tEnter a point: ");
-
-        int x = input.nextInt();
-        int y = input.nextInt();
-        Point result = new Point(x, y);
-        System.out.print(result);
-        return result;
+    private static int promptEnd(Scanner input) {
+        int place = -1;
+        while (place < 1 || place > 32) {
+            System.out.print("Enter end (1 - 32): ");
+            while (!input.hasNextInt()) {
+                if (input.hasNext()) {
+                    input.next();
+                    System.out.print("Enter end (1 - 32): ");
+                }
+            }
+            place = input.nextInt();
+        }
+        return place;
     }
 }
