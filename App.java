@@ -14,17 +14,40 @@ public class App {
 
     public static void main(String[] args) {
         Board b = new Board();
+        Bot bot = new Bot(b, Color.RED);
         Scanner input = new Scanner(System.in);
-        while (true) {
+        while (!b.gameOver()) {
             printBoard(b);
-            int start = promptStart(input);
-            printMoves(b, start);
-            int end = promptEnd(input);
+            Set<Move> moves = b.getLegalMoves();
+            if (b.getTurn() == Color.BLACK) {
+                boolean goodStart = false;
+                int start = promptStart(input);
+                
+                for (Move m : moves) {
+                    if (m.getStart() == start) {
+                        goodStart = true;
+                        break;
+                    }
+                }
+                
+                if (goodStart) {
+                    printMoves(b, start);
+                    int end = promptEnd(input);
 
-            Move userMove = new Move(start, end);
-            if (b.getLegalMoves().contains(userMove))
-                b.move(userMove);
+                    for (Move m : moves) {
+                        if (m.getStart() == start && m.getEnd() == end)
+                            b.move(m);
+                    }
+                }
+
+            } else {
+                Move botMove = bot.getMove();
+                if (moves.contains(botMove))
+                    b.move(botMove);
+            }
         }
+
+        System.out.println("Game Over");
     }
 
     private static void printTurn(Board b) {
@@ -68,6 +91,7 @@ public class App {
         }
         System.out.println();
         System.out.println();
+        System.out.println("Moves: " + b.getLegalMoves());
     }
 
     private static void printMoves(Board b, int place) {
@@ -109,7 +133,7 @@ public class App {
         System.out.println();
         System.out.println();
 
-        // System.out.println("Moves: " + moves);
+        System.out.println("Moves: " + moves);
     }
 
     private static boolean isMove(Set<Move> moves, int start, int end) {
@@ -125,11 +149,21 @@ public class App {
     private static void drawPiece(Board b, int place) {
         if (b.hasPieceAt(place)) {
             if (b.getColor(place) == Color.RED) {
-                System.out.print("[" + ANSI_RED + "RR" +
-                        ANSI_RESET + "] ");
+                if (b.isKing(place)) {
+                    System.out.print("[" + ANSI_RED + "KK" +
+                            ANSI_RESET + "] ");
+                } else {
+                    System.out.print("[" + ANSI_RED + "RR" +
+                            ANSI_RESET + "] ");
+                }
             } else {
-                System.out.print("[" + ANSI_WHITE + "BB" +
-                        ANSI_RESET + "] ");
+                if (b.isKing(place)) {
+                    System.out.print("[" + ANSI_WHITE + "KK" +
+                            ANSI_RESET + "] ");
+                } else {
+                    System.out.print("[" + ANSI_WHITE + "BB" +
+                            ANSI_RESET + "] ");
+                }
             }
         } else {
             System.out.print("[  ] ");

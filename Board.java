@@ -21,7 +21,7 @@ public final class Board {
      * [29] [  ] [30] [  ] [31] [  ] [32] [  ]
      */
 
-    // The width of the board (always even number)
+    // The width of the board
     public static final int WIDTH = 8;
 
     // Half the width of the board / number of possible pieces per row
@@ -59,6 +59,17 @@ public final class Board {
         // checkRep included in updateLegalMoves
     }
 
+    public Board(Board b) {
+        this.board = new Piece[b.board.length];
+        for (int i = 0; i < b.board.length; i++) {
+            this.board[i] = b.board[i];
+        }
+
+        this.turn = b.turn;
+
+        updateLegalMoves();
+    }
+
     // Check the representation invariant holds
     private void checkRep() {
         assert board != null;
@@ -69,13 +80,13 @@ public final class Board {
         if (DEBUG) {
             // no non-king reds in blacks final row
             for (int i = 0; i < H_WIDTH; i++) {
-                if (board[i].color == Color.RED)
+                if (hasPieceAt(i + 1) && board[i].color == Color.RED)
                     assert board[i].isKing;
             }
 
             // no non-king blacks in reds final row
             for (int i = getNumOfPlaces() - H_WIDTH; i < getNumOfPlaces(); i++) {
-                if (board[i].color == Color.BLACK)
+                if (hasPieceAt(i + 1) && board[i].color == Color.BLACK)
                     assert board[i].isKing;
             }
 
@@ -108,7 +119,7 @@ public final class Board {
         }
         checkRep();
     }
-    
+
     //////////////////////// JUMPS //////////////////////////////
 
     // Helper for updateLegalMoves that
@@ -129,7 +140,7 @@ public final class Board {
 
                     // no left edge pieces
                     if (type != 0 && type != H_WIDTH) {
-
+                        // +7
                         if (!hasPieceAt(i + WIDTH - 1)) {
 
                             // check that theres a piece to jump
@@ -162,15 +173,44 @@ public final class Board {
                 }
 
                 // red pieces (or kings) that are not on Black's last two rows
-                if ( (p.color == Color.BLACK || p.isKing) && i > WIDTH) {
+                if ( (p.color == Color.RED || p.isKing) && i > WIDTH) {
 
+                    // no right edge pieces
+                    if (type != H_WIDTH - 1 && type != WIDTH - 1) {
+                        // -7
+                        if (!hasPieceAt(i - WIDTH + 1)) {
+
+                            if (type < H_WIDTH) {   // right shifted row
+                                if (hasPieceAt(i - H_WIDTH + 1) && getColor(i - H_WIDTH + 1) != this.turn)
+                                    result.add(new Move(i, i - WIDTH + 1, i - H_WIDTH + 1));
+                            } else {                // left shifted row
+                                if (hasPieceAt(i - H_WIDTH) && getColor(i - H_WIDTH) != this.turn)
+                                    result.add(new Move(i, i - WIDTH + 1, i - H_WIDTH));
+                            }
+                        }
+                    }
+
+
+                    // no left edge pieces
+                    if (type != 0 && type != H_WIDTH) {
+                        // -9
+                        if (!hasPieceAt(i - WIDTH - 1)) {
+                            if (type < H_WIDTH) {   // right shifted row
+                                if (hasPieceAt(i - H_WIDTH) && getColor(i - H_WIDTH) != this.turn)
+                                    result.add(new Move(i, i - WIDTH - 1, i -  H_WIDTH));
+                            } else {                // left shifted row
+                                if (hasPieceAt(i - H_WIDTH - 1) && getColor(i - H_WIDTH - 1) != this.turn)
+                                    result.add(new Move(i, i - WIDTH - 1, i - H_WIDTH - 1));
+                            }
+                        }
+                    }
                 }
             }
         }
 
         return result;
     }
-    
+
     /////////////////////////// STEPS //////////////////////////////////
 
     // Helper for updateLegalMoves that
@@ -257,11 +297,20 @@ public final class Board {
         return board[place - 1] != null;
     }
 
+    public boolean isKing(int place) {
+        checkPlace(place);
+        return board[place - 1].isKing;
+    }
+
     public Color getColor(int place) {
         checkPlace(place);
         if (!hasPieceAt(place))
             throw new NoSuchElementException("there is no piece at: " + place);
         return board[place - 1].color;
+    }
+
+    public boolean gameOver() {
+        return getLegalMoves().isEmpty();
     }
 
     public void move(Move m) {
@@ -290,26 +339,32 @@ public final class Board {
         if (m.isJump()) {
             board[m.getJumped() - 1] = null;
 
+            Set<Move> newJumps = new HashSet<>();
+
             // check if piece can jump again
             for (Move move : getLegalJumps()) {
-                if (move.getStart() == end) {
+                if (move.getStart() == m.getEnd()) {
                     multijump = true;
-                    break;
+                    newJumps.add(move);
                 }
             }
+
+            if (multijump)
+                this.jumps = newJumps;
         }
 
         // handle making kings
-        if ((board[end].color == Color.BLACK && end > getNumOfPlaces() - H_WIDTH) ||
-                (board[end].color == Color.RED && end <= H_WIDTH)) {
+        if ((board[end].color == Color.BLACK && end >= getNumOfPlaces() - H_WIDTH) ||
+                (board[end].color == Color.RED && end < H_WIDTH)) {
             board[end].isKing = true;
         }
 
         // handle multiple jumps
-        if (!multijump)
+        if (!multijump) {
             swapTurn();
+            updateLegalMoves();
+        }
 
-        updateLegalMoves();
     }
 
     // change whose turn it is
@@ -318,6 +373,22 @@ public final class Board {
             this.turn = Color.BLACK;
         else
             this.turn = Color.RED;
+    }
+    
+    // return a numerical estimate of which player is winning,
+    // positive is Black, negative is Red, magnitude indicates
+    // how strong their lead is
+    public int getScore() {
+        int score = 0;
+        for (int i = 0; i < getNumOfPlaces(); i++) {
+            if (board[i] != null) {
+                if (board[i].color == Color.BLACK)
+                    score++;
+                else
+                    score--;
+            }
+        }
+        return score;
     }
 
 

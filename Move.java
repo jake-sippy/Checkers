@@ -10,11 +10,11 @@ public class Move {
 
     public Move(int start, int end, int jumped) {
         int max = (Board.WIDTH * Board.WIDTH) / 2;
-        if (start < 0 || end < 0  || start >= max || end >= max)
-            throw new IllegalArgumentException("Move is off the board");
         this.start = start;
         this.end = end;
         this.jumped = jumped;
+        if (start < 1 || end < 1  || start > max || end > max)
+            throw new IllegalArgumentException(this.toString() + " is off the board, max = " + max);
     }
 
     public int getStart() {
