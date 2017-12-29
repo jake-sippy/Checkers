@@ -35,15 +35,24 @@ public class App {
                     int end = promptEnd(input);
 
                     for (Move m : moves) {
-                        if (m.getStart() == start && m.getEnd() == end)
+                        if (m.getStart() == start && m.getEnd() == end) {
+                            System.out.println("User Move: " + m);
                             b.move(m);
+                        }
                     }
                 }
 
             } else {
+                try {
+                    Thread.sleep(1000 * 2);
+                } catch (Exception e) {
+                    System.out.print("");
+                }
                 Move botMove = bot.getMove();
-                if (moves.contains(botMove))
+                if (moves.contains(botMove)) {
+                    System.out.println("Bot Move: " + botMove);
                     b.move(botMove);
+                }
             }
         }
 
@@ -91,7 +100,7 @@ public class App {
         }
         System.out.println();
         System.out.println();
-        System.out.println("Moves: " + b.getLegalMoves());
+        // System.out.println("Moves: " + b.getLegalMoves());
     }
 
     private static void printMoves(Board b, int place) {
@@ -133,7 +142,7 @@ public class App {
         System.out.println();
         System.out.println();
 
-        System.out.println("Moves: " + moves);
+        // System.out.println("Moves: " + moves);
     }
 
     private static boolean isMove(Set<Move> moves, int start, int end) {

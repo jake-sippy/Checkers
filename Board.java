@@ -354,9 +354,12 @@ public final class Board {
         }
 
         // handle making kings
-        if ((board[end].color == Color.BLACK && end >= getNumOfPlaces() - H_WIDTH) ||
-                (board[end].color == Color.RED && end < H_WIDTH)) {
-            board[end].isKing = true;
+        if (this.turn == Color.BLACK && end >= getNumOfPlaces() - H_WIDTH) {
+            board[end] = board[end].makeKing();
+        }
+        
+        if (this.turn == Color.RED && end < H_WIDTH) {
+            board[end] = board[end].makeKing();
         }
 
         // handle multiple jumps
@@ -382,10 +385,17 @@ public final class Board {
         int score = 0;
         for (int i = 0; i < getNumOfPlaces(); i++) {
             if (board[i] != null) {
-                if (board[i].color == Color.BLACK)
-                    score++;
-                else
-                    score--;
+                if (board[i].color == Color.BLACK) {
+                    if (board[i].isKing)
+                        score += 15;
+                    else
+                        score += 1;
+                } else {
+                    if (board[i].isKing)
+                        score -= 15;
+                    else
+                        score -= 1;
+                }
             }
         }
         return score;
@@ -401,5 +411,12 @@ public final class Board {
             this.color = color;
             this.isKing = false;
         }
+
+        public Piece makeKing() {
+            Piece p = new Piece(this.color);
+            p.isKing = true;
+            return p;
+        }
+
     }
 }
