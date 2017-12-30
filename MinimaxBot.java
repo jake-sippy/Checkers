@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class MinimaxBot implements Bot {
+public class MinimaxBot implements Player {
     private Board board;
 
     public MinimaxBot(Board board) {

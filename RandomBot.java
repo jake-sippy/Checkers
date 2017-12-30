@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class RandomBot implements Bot {
+public class RandomBot implements Player {
     private Board board;
     private Random r;
 

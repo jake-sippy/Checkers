@@ -12,76 +12,86 @@ public class App {
     public static final String ANSI_CYAN = "\u001B[36m";
     public static final String ANSI_WHITE = "\u001B[37m";
 
+    public static final String[] knownPlayers = {
+        "human",
+        "random",
+        "minimax",
+    };
+
     public static void main(String[] args) {
-        if (args.length != 1) {
-            System.out.println("Usage: java App <mode>");
-            System.out.println("modes:");
-            System.out.println("\trandom");
-            System.out.println("\tminimax");
+        if (args.length != 2) {
+            System.out.println("Usage: java App <black player> " +
+                    "<red player>");
+            System.out.println("Player types:"); 
+            for (String player : knownPlayers)
+                System.out.println("\t" + player);
             return;
         }
          
         Scanner input = new Scanner(System.in);
-        String mode = args[0];
+        Board board = new Board();
+        String p1 = args[0].trim();
+        String p2 = args[1].trim();
         
-        Board b = new Board();
-        Bot bot;
+        Player black;
+        Player red;
+        
+        black = createPlayer(p1, board);
+        red = createPlayer(p2, board);
 
-        // Handle type of bot
-        if (mode.equals("random"))
-            bot = new RandomBot(b);
-        else if (mode.equals("minimax"))
-            bot = new MinimaxBot(b);
-        else {
-            System.out.println("Unknown option: " + mode);
-            System.out.println("Usage: java App <mode>");
-            System.out.println("modes:");
-            System.out.println("\trandom");
-            System.out.println("\tminimax");
+        if (black == null) {
+            System.out.println("Unknown player type: " + p1);
             return;
-         }
+        }
 
-        while (!b.gameOver()) {
-            printBoard(b);
-            Set<Move> moves = b.getLegalMoves();
-            if (b.getTurn() == Color.BLACK) {
-                boolean goodStart = false;
-                int start = promptStart(input);
-                
-                for (Move m : moves) {
-                    if (m.getStart() == start) {
-                        goodStart = true;
-                        break;
-                    }
-                }
-                
-                if (goodStart) {
-                    printMoves(b, start);
-                    int end = promptEnd(input);
+        if (red == null) {
+            System.out.println("Unknown player type: " + p2);
+            return;
+        }
 
-                    for (Move m : moves) {
-                        if (m.getStart() == start && m.getEnd() == end) {
-                            System.out.println("User Move: " + m);
-                            b.move(m);
-                        }
-                    }
-                }
+        run(board, black, red);
+    }
 
-            } else {
-                try {
-                    Thread.sleep(1000 * 0);
-                } catch (Exception e) {
-                    System.out.print("");
-                }
-                Move botMove = bot.getMove();
-                if (moves.contains(botMove)) {
-                    System.out.println("Bot Move: " + botMove);
-                    b.move(botMove);
-                }
+    private static Player createPlayer(String type, Board board) {
+        if (type.equals("human"))
+            return new Human(board);
+        else if (type.equals("random"))
+            return new RandomBot(board);
+        else if (type.equals("minimax"))
+            return new MinimaxBot(board);
+        else
+            return null; // unknown type
+    }
+
+    private static void run(Board board, Player black, Player red) {
+
+        // Game loop
+        while (!board.gameOver()) {
+            printBoard(board);
+            printTurn(board);
+            
+            Set<Move> moves = board.getLegalMoves();
+
+            if (board.getTurn() == Color.BLACK) {
+                Move blackMove = black.getMove();
+                if (moves.contains(blackMove))
+                    board.move(blackMove);
+            } else { // Red's move
+                Move redMove = red.getMove();
+                if (moves.contains(redMove))
+                    board.move(redMove);
+            }
+            
+            try {
+                Thread.sleep(1000 * 1);
+            } catch (Exception e) {
+                System.out.println(e);
             }
         }
-        printBoard(b);
-        System.out.println("Game Over");
+        
+        printTurn(board);
+        // Print how the game ended
+        printBoard(board);
     }
 
     private static void printTurn(Board b) {
@@ -95,7 +105,6 @@ public class App {
     }
 
     public static void printBoard(Board b) {
-        printTurn(b);
         // space before board
         System.out.println();
         for (int i = 0; i < b.getNumOfPlaces(); i++) {
@@ -128,109 +137,33 @@ public class App {
         // System.out.println("Moves: " + b.getLegalMoves());
     }
 
-    private static void printMoves(Board b, int place) {
-        printTurn(b);
-        Set<Move> moves = b.getLegalMoves();
+    private static void drawPiece(Board board, int place) {
+        if (board.hasPieceAt(place)) {
 
-        // space before board
-        System.out.println();
-        for (int i = 0; i < b.getNumOfPlaces(); i++) {
-            int rowType = i % 8;
+            boolean isKing = board.isKing(place);
 
-            // indent the board
-            if (rowType == 0 || rowType == 4)
-                System.out.print(i + "\t");
+            if (board.getColor(place) == Color.RED) {
+                System.out.print("[" + ANSI_RED);
 
-            if (rowType < 4)
-                System.out.print(ANSI_BLUE + "[[]] " + ANSI_RESET);
+                if (isKing)
+                    System.out.print("KK");
+                else
+                    System.out.print("RR");
 
-            if (isMove(moves, place, i + 1)) {
-                System.out.print("[" + ANSI_GREEN + ":)" +
-                        ANSI_RESET + "] ");
+                System.out.print(ANSI_RESET + "] ");
             } else {
-                drawPiece(b, i + 1);
-            }
+                System.out.print("[" + ANSI_WHITE);
 
-            if (rowType >= 4)
-                System.out.print(ANSI_BLUE + "[[]] " + ANSI_RESET);
+                if (isKing)
+                    System.out.print("KK");
+                else
+                    System.out.print("BB");
 
-            if (rowType == 3 || rowType == 7) {
-                System.out.println();
-                System.out.println();
-            }
-        }
-
-        System.out.print(" \t    ");
-        for (int i = 1; i <= Board.WIDTH / 2; i++) {
-            System.out.print("+" + i + "        ");
-        }
-        System.out.println();
-        System.out.println();
-
-        // System.out.println("Moves: " + moves);
-    }
-
-    private static boolean isMove(Set<Move> moves, int start, int end) {
-        for (Move move : moves) {
-            if (move.getStart() == start && move.getEnd() == end) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static void drawPiece(Board b, int place) {
-        if (b.hasPieceAt(place)) {
-            if (b.getColor(place) == Color.RED) {
-                if (b.isKing(place)) {
-                    System.out.print("[" + ANSI_RED + "KK" +
-                            ANSI_RESET + "] ");
-                } else {
-                    System.out.print("[" + ANSI_RED + "RR" +
-                            ANSI_RESET + "] ");
-                }
-            } else {
-                if (b.isKing(place)) {
-                    System.out.print("[" + ANSI_WHITE + "KK" +
-                            ANSI_RESET + "] ");
-                } else {
-                    System.out.print("[" + ANSI_WHITE + "BB" +
-                            ANSI_RESET + "] ");
-                }
+                System.out.print(ANSI_RESET + "] ");
             }
         } else {
             System.out.print("[  ] ");
         }
     }
 
-    private static int promptStart(Scanner input) {
-        int place = -1;
-        while (place < 1 || place > 32) {
-            System.out.print("Enter start (1 - 32): ");
-            while (!input.hasNextInt()) {
-                if (input.hasNext()) {
-                    input.next();
-                    System.out.print("Enter start (1 - 32): ");
-                }
-            }
-            place = input.nextInt();
-        }
-        return place;
-    }
-
-    private static int promptEnd(Scanner input) {
-        int place = -1;
-        while (place < 1 || place > 32) {
-            System.out.print("Enter end (1 - 32): ");
-            while (!input.hasNextInt()) {
-                if (input.hasNext()) {
-                    input.next();
-                    System.out.print("Enter end (1 - 32): ");
-                }
-            }
-            place = input.nextInt();
-        }
-        return place;
-    }
 }
