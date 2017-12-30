@@ -13,9 +13,34 @@ public class App {
     public static final String ANSI_WHITE = "\u001B[37m";
 
     public static void main(String[] args) {
-        Board b = new Board();
-        Bot bot = new Bot(b, Color.RED);
+        if (args.length != 1) {
+            System.out.println("Usage: java App <mode>");
+            System.out.println("modes:");
+            System.out.println("\trandom");
+            System.out.println("\tminimax");
+            return;
+        }
+         
         Scanner input = new Scanner(System.in);
+        String mode = args[0];
+        
+        Board b = new Board();
+        Bot bot;
+
+        // Handle type of bot
+        if (mode.equals("random"))
+            bot = new RandomBot(b);
+        else if (mode.equals("minimax"))
+            bot = new MinimaxBot(b);
+        else {
+            System.out.println("Unknown option: " + mode);
+            System.out.println("Usage: java App <mode>");
+            System.out.println("modes:");
+            System.out.println("\trandom");
+            System.out.println("\tminimax");
+            return;
+         }
+
         while (!b.gameOver()) {
             printBoard(b);
             Set<Move> moves = b.getLegalMoves();
@@ -44,7 +69,7 @@ public class App {
 
             } else {
                 try {
-                    Thread.sleep(1000 * 2);
+                    Thread.sleep(1000 * 0);
                 } catch (Exception e) {
                     System.out.print("");
                 }
@@ -55,7 +80,7 @@ public class App {
                 }
             }
         }
-
+        printBoard(b);
         System.out.println("Game Over");
     }
 
