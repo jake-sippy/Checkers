@@ -78,7 +78,7 @@ public class App {
         else if (type.equals("random"))
             return new RandomBot(board);
         else if (type.equals("minimax")) {
-            return new MinimaxBot(board, 7);
+            return new MinimaxBot(board);
         } else
             return null; // unknown type
     }
@@ -111,7 +111,7 @@ public class App {
             try {
                 // wait 0.1 seconds, makes faster bots
                 // moves visable
-                Thread.sleep(100);
+                Thread.sleep(500);
             } catch (Exception e) {
                 System.out.println(e);
             }

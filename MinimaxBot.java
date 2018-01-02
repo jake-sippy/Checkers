@@ -67,7 +67,7 @@ public class MinimaxBot implements Player {
                 for (Move m : board.getLegalMoves()) {
                     Board copy = new Board(board);
                     copy.move(m);
-                    children.add(new GameTree(copy, maxDepth - 1, m));
+                    children.add(new GameTree(copy, m, depth + 1));
                 }
             }
         }
