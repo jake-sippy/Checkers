@@ -27,7 +27,7 @@ public final class Board {
     // Half the width of the board / number of possible pieces per row
     private static final int H_WIDTH = WIDTH / 2;
     // Run expensive tests
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     // Container for pieces
     private Piece[] board;
@@ -382,17 +382,23 @@ public final class Board {
     // positive is Black, negative is Red, magnitude indicates
     // how strong their lead is
     public int getScore() {
+        if (gameOver()) {
+            if (turn == Color.RED)
+                return 99999999;
+            else
+                return -9999999;
+        }
         int score = 0;
         for (int i = 0; i < getNumOfPlaces(); i++) {
             if (board[i] != null) {
                 if (board[i].color == Color.BLACK) {
                     if (board[i].isKing)
-                        score += 15;
+                        score += 4;
                     else
                         score += 1;
                 } else {
                     if (board[i].isKing)
-                        score -= 15;
+                        score -= 4;
                     else
                         score -= 1;
                 }

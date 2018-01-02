@@ -57,9 +57,9 @@ public class App {
             return new Human(board);
         else if (type.equals("random"))
             return new RandomBot(board);
-        else if (type.equals("minimax"))
-            return new MinimaxBot(board);
-        else
+        else if (type.equals("minimax")) {
+            return new MinimaxBot(board, 7);
+        } else
             return null; // unknown type
     }
 
@@ -83,15 +83,16 @@ public class App {
             }
             
             try {
-                Thread.sleep(1000 * 1);
+                Thread.sleep(1000 * 0);
             } catch (Exception e) {
                 System.out.println(e);
             }
         }
         
-        printTurn(board);
         // Print how the game ended
         printBoard(board);
+        printTurn(board);
+        System.out.println("GAME OVER");
     }
 
     private static void printTurn(Board b) {

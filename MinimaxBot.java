@@ -2,44 +2,43 @@ import java.util.*;
 
 public class MinimaxBot implements Player {
     private Board board;
+    private int maxDepth;
 
-    public MinimaxBot(Board board) {
+    public MinimaxBot(Board board, int maxDepth) {
         this.board = board;
+        this.maxDepth = maxDepth;
     }
 
     public Move getMove() {
-        GameTree t = new GameTree(this.board);
-        //System.out.println(t);
-        //List<Move> moves = new ArrayList<>(board.getLegalMoves());
-        //Random r = new Random();
-        //return moves.get(r.nextInt(moves.size()));
+        GameTree t = new GameTree(this.board, this.maxDepth);
         return t.getMove();
     }
 
     class GameTree {
-        private static final int MAX_DEPTH = 7;
-        Color turn;
-        int value;
-        Move move;
-        List<GameTree> children;
-        Random r;
+        private int maxDepth;
+        private Color turn;
+        private int value;
+        private Move move;
+        private List<GameTree> children;
+        private Random r;
 
-        public GameTree(Board board) {
-            this(board, null, 1);
+        public GameTree(Board board, int maxDepth) {
+            this(board, maxDepth, null);
         }
 
-        private GameTree(Board board, Move move, int depth) {
+        private GameTree(Board board, int maxDepth, Move move) {
+            this.maxDepth = maxDepth;
             this.turn = board.getTurn();
             this.value = board.getScore();
             this.move = move;
             this.children = new ArrayList<>();
             this.r = new Random();
 
-            if (depth < MAX_DEPTH) {
+            if (maxDepth > 0) {
                 for (Move m : board.getLegalMoves()) {
                     Board copy = new Board(board);
                     copy.move(m);
-                    children.add(new GameTree(copy, m, depth + 1));
+                    children.add(new GameTree(copy, maxDepth - 1, m));
                 }
             }
         }
@@ -56,7 +55,7 @@ public class MinimaxBot implements Player {
         }
 
         private void fillValues(GameTree t) {
-            // get all lowest children (base case)
+            // base case
             if (t.children.isEmpty()) {
                 return;
             }
@@ -83,9 +82,6 @@ public class MinimaxBot implements Player {
                 }
             }
         }
-
-
-
 
         @Override
         public String toString() {
