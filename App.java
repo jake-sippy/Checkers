@@ -1,5 +1,8 @@
 import java.util.*;
 
+/**
+ * The frontend for checkers
+ */
 public class App {
     // static ANSI codes for colorizing output
     public static final String ANSI_RESET = "\u001B[0m";
@@ -11,14 +14,24 @@ public class App {
     public static final String ANSI_PURPLE = "\u001B[35m";
     public static final String ANSI_CYAN = "\u001B[36m";
     public static final String ANSI_WHITE = "\u001B[37m";
-
-    public static final String[] knownPlayers = {
+    
+    // helpful array of known implementations of Player
+    private static final String[] knownPlayers = {
         "human",
         "random",
         "minimax",
     };
-
+    
+    /**
+     * Runs a game of checkers
+     * @param args the flags passed by the user, must be of
+     *              length 2, where args[0] is the type of
+     *              player who will be playing black, and
+     *              args[1] will be the player playing
+     *              red
+     */
     public static void main(String[] args) {
+        // Print usage if args does not look correct
         if (args.length != 2) {
             System.out.println("Usage: java App <black player> " +
                     "<red player>");
@@ -48,10 +61,17 @@ public class App {
             System.out.println("Unknown player type: " + p2);
             return;
         }
-
+        
+        // correct players given, run game
         run(board, black, red);
     }
 
+    /**
+     * Helper method which maps legal user flags to the correct
+     * implementation of player
+     * @param type the flag passed by the user
+     * @param board the reference to the board
+     */
     private static Player createPlayer(String type, Board board) {
         if (type.equals("human"))
             return new Human(board);
@@ -63,6 +83,12 @@ public class App {
             return null; // unknown type
     }
 
+    /**
+     * Helper method that runs the game loop
+     * @param board the board to be played on
+     * @param black the player playing black
+     * @param red the player playing red
+     */
     private static void run(Board board, Player black, Player red) {
 
         // Game loop
@@ -83,7 +109,9 @@ public class App {
             }
             
             try {
-                Thread.sleep(1000 * 1);
+                // wait 0.1 seconds, makes faster bots
+                // moves visable
+                Thread.sleep(100);
             } catch (Exception e) {
                 System.out.println(e);
             }
@@ -94,6 +122,10 @@ public class App {
         printBoard(board);
     }
 
+    /**
+     * Prints which players turn it is
+     * @param b the board being played on
+     */
     private static void printTurn(Board b) {
         System.out.println();
         System.out.print("Turn : ");
@@ -103,7 +135,11 @@ public class App {
             System.out.println(ANSI_WHITE + "BLACK" + ANSI_RESET);
         }
     }
-
+    
+    /**
+     * Prints the board being played on
+     * @param board the board being played on
+     */
     public static void printBoard(Board b) {
         // space before board
         System.out.println();
@@ -136,33 +172,38 @@ public class App {
         System.out.println();
         // System.out.println("Moves: " + b.getLegalMoves());
     }
-
+    
+    /**
+     * Prints the piece at the given place on the board
+     * @param board the board being played on
+     * @param place the place whose piece will be drawn
+     */
     private static void drawPiece(Board board, int place) {
         if (board.hasPieceAt(place)) {
 
             boolean isKing = board.isKing(place);
 
             if (board.getColor(place) == Color.RED) {
-                System.out.print("[" + ANSI_RED);
+                System.out.print("[" + ANSI_RED);       // red output for red piece
 
                 if (isKing)
-                    System.out.print("KK");
+                    System.out.print("KK");             // KK if king
                 else
-                    System.out.print("RR");
+                    System.out.print("RR");             // RR if not king
 
                 System.out.print(ANSI_RESET + "] ");
             } else {
-                System.out.print("[" + ANSI_WHITE);
+                System.out.print("[" + ANSI_WHITE);     // white output for black piece
 
                 if (isKing)
-                    System.out.print("KK");
+                    System.out.print("KK");             // KK if king
                 else
-                    System.out.print("BB");
+                    System.out.print("BB");             // BB if not king
 
                 System.out.print(ANSI_RESET + "] ");
             }
         } else {
-            System.out.print("[  ] ");
+            System.out.print("[  ] ");                  // empty if no piece
         }
     }
 

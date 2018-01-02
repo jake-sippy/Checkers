@@ -1,4 +1,10 @@
+/**
+ * Interface for checkers players
+ */
 public interface Player {
-    // Return next move, must be in board.getLegalMoves()
+    /**
+     * Returns a legal Move
+     * @return a legal Move
+     */
     public Move getMove();
 }
