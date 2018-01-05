@@ -20,6 +20,7 @@ public class App {
         "human",
         "random",
         "minimax",
+        "pruning",
     };
     
     /**
@@ -77,9 +78,11 @@ public class App {
             return new Human(board);
         else if (type.equals("random"))
             return new RandomBot(board);
-        else if (type.equals("minimax")) {
+        else if (type.equals("minimax"))
             return new MinimaxBot(board);
-        } else
+        else if (type.equals("pruning"))
+            return new PruningBot(board);
+        else
             return null; // unknown type
     }
 
@@ -99,19 +102,15 @@ public class App {
             Set<Move> moves = board.getLegalMoves();
 
             if (board.getTurn() == Color.BLACK) {
-                Move blackMove = black.getMove();
-                if (moves.contains(blackMove))
-                    board.move(blackMove);
+                board.move(black.getMove());
             } else { // Red's move
-                Move redMove = red.getMove();
-                if (moves.contains(redMove))
-                    board.move(redMove);
+                board.move(red.getMove());
             }
             
             try {
                 // wait 0.1 seconds, makes faster bots
                 // moves visable
-                Thread.sleep(500);
+                Thread.sleep(0);
             } catch (Exception e) {
                 System.out.println(e);
             }
@@ -119,8 +118,12 @@ public class App {
         
         // Print how the game ended
         printBoard(board);
-        printTurn(board);
-        System.out.println("GAME OVER");
+        System.out.print("GAME OVER");
+        System.out.print("\tWinner: ");
+        if (board.getTurn() == Color.BLACK)
+            System.out.println(ANSI_RED + "RED" + ANSI_RESET);
+        else
+            System.out.println(ANSI_WHITE + "BLACK" + ANSI_RESET);
     }
 
     /**

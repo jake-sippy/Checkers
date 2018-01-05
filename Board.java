@@ -89,6 +89,24 @@ public final class Board {
     }
 
     /**
+     * Constructor that returns a new board, that
+     * is the result of performing move m, on board b.
+     * Does not modify b.
+     * @param b the board to be copied
+     * @param m the move to be made on the copied board
+     */
+    public Board(Board b, Move m) {
+        this.board = new Piece[b.board.length];
+        for (int i = 0; i < b.board.length; i++)
+            this.board[i] = b.board[i];
+        
+        this.turn = b.turn;
+        updateLegalMoves();
+
+        this.move(m);
+    }
+
+    /**
      * Check the representation invariant holds
      * through the use of assert statements
      */
@@ -522,7 +540,7 @@ public final class Board {
      * store information about color and king
      * status
      */
-    class Piece {
+    private static class Piece {
         // Color of the piece
         Color color;
         // Is the piece a king
